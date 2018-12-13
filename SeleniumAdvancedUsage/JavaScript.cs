@@ -1,6 +1,8 @@
 ﻿using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using System.Threading;
+using System.Linq;
 
 namespace SeleniumAdvancedUsage
 {
@@ -87,6 +89,42 @@ namespace SeleniumAdvancedUsage
             }
 
             jexec.ExecuteScript("arguments[0].scrollIntoView()", elementFound);
+        }
+
+        [Test]
+        public void PictureStock()
+        {
+            driver.Url = "https://unsplash.com/search/photos/test";
+            driver.Manage().Window.Maximize();
+
+            // Scroll to the bottom
+
+            while (true)
+            {
+                var prevScrollY = (long)jexec.ExecuteScript("return window.scrollY");
+                
+                jexec.ExecuteScript("window.scrollBy(0, 300)");
+                Thread.Sleep(100);
+
+                var ScrollY = (long)jexec.ExecuteScript("return window.scrollY");
+
+                if (prevScrollY == ScrollY)
+                    break;
+            }
+
+            var images = driver.FindElements(By.CssSelector("figure[itemprop = 'image']"));
+
+            var biggestY = images.Max(x => x.Location.Y + x.Size.Height);
+
+            var lowestImages = images.Where(x => x.Location.Y + x.Size.Height == biggestY).ToList();
+
+            var biggestX = lowestImages.Max(x => x.Location.X);
+            var mostRightImage = lowestImages.First(x => x.Location.X == biggestX);
+
+            mostRightImage.Click();
+
+            driver.Quit();
+
         }
 
     }
